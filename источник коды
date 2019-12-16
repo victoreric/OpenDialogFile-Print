@@ -1,0 +1,90 @@
+from PyQt5 import QtGui
+from PyQt5.QtWidgets import QApplication, QMainWindow, QPushButton, QTextEdit, QAction, QFileDialog
+
+import sys
+from PyQt5.QtPrintSupport import QPrintDialog, QPrinter, QPrintPreviewDialog
+
+class Window(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.title = "FileDialog"  # add atribute window
+        self.top = 100
+        self.left = 100
+        self.width = 680
+        self.height = 500
+
+        self.InitWindow() # important
+
+    # method for calling attribute
+    def InitWindow(self):
+
+        # Menu bar
+        mainMenu = self.menuBar()
+        mainMenu.setNativeMenuBar(False)
+        FileMenu = mainMenu.addMenu("File")  # add menu utama
+
+        exitButton = QAction("Exit", self)
+        exitButton.setShortcut("Ctrl+E")
+        exitButton.setStatusTip("Exit Application")
+        exitButton.triggered.connect(self.close)
+        FileMenu.addAction(exitButton)
+
+
+        # Button Open File
+        self.buttonOpenFile = QPushButton("Open File", self)
+        self.buttonOpenFile.setGeometry(0, 100, 100, 50)
+        self.buttonOpenFile.clicked.connect(self.openFileDialog)
+
+        # button preview
+        self.buttonpreview = QPushButton("Print Preview", self)
+        self.buttonpreview.setGeometry(200, 100, 120, 50)
+        self.buttonpreview.clicked.connect(self.printPreviewDialog)
+
+        # button Print
+        self.button = QPushButton("Print", self)
+        self.button.setGeometry(100,100,100,50)
+        self.button.clicked.connect(self.createPrintDialog) # connect to method
+
+
+        # Text Editor
+        self.textedit = QTextEdit(self)
+        self.textedit.setGeometry(10,150,300,200)
+
+        self.setWindowTitle(self.title)
+        self.setGeometry(self.top, self.left,self.width,self.height)
+        self.show() # important
+
+
+    def openFileDialog(self):
+        filename = QFileDialog.getOpenFileName(self,'Open File','/home' )
+
+        if filename[0]:
+            f = open(filename[0], 'r')
+
+            with f :
+                data = f.read()
+                self.textedit.setText(data)
+
+
+    def createPrintDialog(self):
+        printer = QPrinter(QPrinter.HighResolution)
+        dialog = QPrintDialog(printer,self)
+
+        if dialog.exec_() == QPrintDialog.Accepted:
+            self.textedit.print(printer)
+
+    def printPreviewDialog(self):
+        printer = QPrinter(QPrinter.HighResolution)
+        previewDialog = QPrintPreviewDialog(printer, self)
+        previewDialog.paintRequested.connect(self.printPreview)
+        previewDialog.exec_()
+
+    def printPreview(self,printer):
+        self.textedit.print_(printer)
+
+
+
+
+App = QApplication(sys.argv) # important
+window = Window()   # important
+sys.exit(App.exec_())   # important
